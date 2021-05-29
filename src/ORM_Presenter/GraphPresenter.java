@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.vstu.nodelinkdiagram.ClientDiagramModel;
 import org.vstu.nodelinkdiagram.DiagramElement;
 import org.vstu.nodelinkdiagram.util.Point;
+import org.vstu.orm2diagram.model.ORM_EntityType;
+import org.vstu.orm2diagram.model.ORM_ValueType;
 
 import java.awt.*;
 import java.util.Collection;
@@ -62,24 +64,88 @@ public class GraphPresenter {
         return presenter != null ? presenter.getORM_Element() : null;
     }
 
-    public EntityTypePresenter createEntityTypePresenter(String name, Point pos) {
+    public EntityTypePresenter createEntityTypePresenter(Point pos) {
 
-        EntityTypePresenter entityPresenter = new EntityTypePresenter(this, pos);
+        ORM_EntityType orm_entityType = _clientDiagramModel.createNode(ORM_EntityType.class);
+        EntityTypePresenter entityPresenter = new EntityTypePresenter(this, pos, orm_entityType);
 
+        _clientDiagramModel.commit();
         //зарегитреруем призентор и его соответсвующего mxCell
-        registerPresenter(entityPresenter);
+        registerPresenter(entityPresenter); // надо ли?
 
         return entityPresenter;
     }
 
-    public ValueTypePresenter createValueTypePresenter(String name, Point pos) {
+    public ValueTypePresenter createValueTypePresenter(Point pos) {
 
-        ValueTypePresenter valueTypePresenter = new ValueTypePresenter(this, pos);
+        ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        ValueTypePresenter valueTypePresenter = new ValueTypePresenter(this, pos, orm_valueType);
 
+        _clientDiagramModel.commit();
         //зарегитреруем призентор и его соответсвующего mxCell
         registerPresenter(valueTypePresenter);
 
         return valueTypePresenter;
+    }
+
+    public UnaryPredicatePresenter createUnaryPredicatePresenter(Point pos) {
+
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        UnaryPredicatePresenter unaryPredicatePresenter = new UnaryPredicatePresenter(this, pos);
+
+        //_clientDiagramModel.commit();
+        //зарегитреруем призентор и его соответсвующего mxCell
+        registerPresenter(unaryPredicatePresenter);
+
+        return unaryPredicatePresenter;
+    }
+
+    public BinaryPredicatePresenter createBinaryPredicatePresenter(Point pos) {
+
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        BinaryPredicatePresenter binaryPredicatePresenter = new BinaryPredicatePresenter(this, pos);
+
+        //_clientDiagramModel.commit();
+        //зарегитреруем призентор и его соответсвующего mxCell
+        registerPresenter(binaryPredicatePresenter);
+
+        return binaryPredicatePresenter;
+    }
+
+    public ExclusionConstraintPresenter createExclusionConstraintPresenter(Point pos) {
+
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        ExclusionConstraintPresenter exclusionConstraintPresenter = new ExclusionConstraintPresenter(this, pos);
+
+        //_clientDiagramModel.commit();
+        //зарегитреруем призентор и его соответсвующего mxCell
+        registerPresenter(exclusionConstraintPresenter);
+
+        return exclusionConstraintPresenter;
+    }
+
+    public InclusiveOrConstraintPresenter createInclusiveOrConstraintPresenter(Point pos) {
+
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        InclusiveOrConstraintPresenter inclusiveOrConstraintPresenter = new InclusiveOrConstraintPresenter(this, pos);
+
+        //_clientDiagramModel.commit();
+        //зарегитреруем призентор и его соответсвующего mxCell
+        registerPresenter(inclusiveOrConstraintPresenter);
+
+        return inclusiveOrConstraintPresenter;
+    }
+
+    public ExclusiveOrConstraintPresenter createExclusiveOrConstraintPresenter(Point pos) {
+
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        ExclusiveOrConstraintPresenter exclusiveOrConstraintPresenter = new ExclusiveOrConstraintPresenter(this, pos);
+
+        //_clientDiagramModel.commit();
+        //зарегитреруем призентор и его соответсвующего mxCell
+        registerPresenter(exclusiveOrConstraintPresenter);
+
+        return exclusiveOrConstraintPresenter;
     }
 
     public SubtypingPresenter createSubtypingPresenter() {

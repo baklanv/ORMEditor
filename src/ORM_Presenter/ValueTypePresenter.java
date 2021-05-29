@@ -4,15 +4,21 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.nodelinkdiagram.util.Point;
+import org.vstu.orm2diagram.model.ORM_EntityType;
+import org.vstu.orm2diagram.model.ORM_ValueType;
 
 public class ValueTypePresenter extends ElementPresenter{
-    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos) {
+    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_ValueType orm_valueType) {
         super(graphPresenter);
 
         _mxCell = (mxCell) graphPresenter.getMxGraph()
                 .insertVertex(graphPresenter.getMxGraph().getDefaultParent(), null,
                         generateName(), pos.getX(), pos.getY(), 80, 30,
                         "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false");
+
+        _diagramElement = orm_valueType;
+        ((ORM_ValueType)_diagramElement).setName(getName());
+        //((ORM_ValueType)_diagramElement).setPosition(getPosition());
     }
 
     // ------------ Генерация типового представления для Value Type -------------
