@@ -25,10 +25,12 @@ public class ExclusionConstraintPresenter extends ElementPresenter{
                 "shape=line;perimeter=linePerimeter;spacing=10;" +
                         "resizable=false;strokeColor=purple;fillColor=purple;" +
                         "editable=0;movable=false;connectable=false;rotation=45");
+        line1.setConnectable(false);
         mxCell line2 = (mxCell) graphPresenter.getMxGraph().insertVertex(_mxCell,
                 null, "", 0, 8, 26, 10,
                 "shape=line;perimeter=linePerimeter;spacing=10;" +
                         "resizable=false;strokeColor=purple;fillColor=purple;" +
                         "editable=0;movable=false;connectable=false;rotation=135");
+        line2.setConnectable(false);
     }
 }

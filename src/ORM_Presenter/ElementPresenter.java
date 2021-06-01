@@ -30,6 +30,6 @@ public abstract class ElementPresenter {
     }
 
     void destroy(){
-
+        getGraphPresenter().getMxGraph().removeCells(new Object[]{_mxCell}, true);
     }
 }

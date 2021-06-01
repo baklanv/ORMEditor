@@ -1,10 +1,14 @@
 package ORM2Editor;
 
-import ORM_Event.Event1;
-import ORM_Event.EventRecorderListener;
+import ORM_Event.ORM_EventObject;
 import ORM_Presenter.GraphPresenter;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxEvent;
+import com.mxgraph.util.mxEventObject;
+import com.mxgraph.util.mxEventSource;
+import com.mxgraph.view.mxGraphSelectionModel;
+import com.mxgraph.view.mxStylesheet;
 import org.vstu.nodelinkdiagram.*;
 import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_DiagramFactory;
@@ -16,9 +20,10 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-public class ORM2Editor extends JFrame implements DiagramClient{
+public class ORM2Editor extends JFrame implements DiagramClient {
 
     ORM2Editor_mxGraph _graph;
     ClientDiagramModel _clientDiagramModel;
@@ -31,19 +36,28 @@ public class ORM2Editor extends JFrame implements DiagramClient{
 
     private final int ENTITY_TYPE = 0, VALUE_TYPE = 1, UNARY_FACT = 2,
             BINARY_FACT = 3, EXCLUSION_CONSTRAINT = 4, INCLUSIVE_OR_CONSTRAINT = 5, EXCLUSIVE_OR_CONSTRAINT = 6,
-            ROLE_ASSOC = 7, SUBTYPING = 8, SUBTYPING_CONSTRAIN = 9, DELETE = 10;
+            ROLE_ASSOC = 7, SUBTYPING = 8, CONSTRAIN_ASSOCIATION = 9, DELETE = 10;
 
     String[] _toolbarItemName = {"EntityType", "ValueType", "UnaryFactType", "BinaryFactType", "ExclusionConstraint", "Inclusive Or Oonstraint",
-            "ExclusiveOrConstraint", "RoleConnector", "SubtypeConnector", "SubtypingConstrain", "Delete"};
+            "ExclusiveOrConstraint", "RoleConnector", "SubtypeConnector", "ConstrainAssociation", "Delete"};
 
-    public ORM2Editor(){
+    public ORM2Editor() {
         super("ORM2Editor");
 
+
         MainDiagramModel mainModel = new MainDiagramModel(new ORM_DiagramFactory());
-        _clientDiagramModel = mainModel.registerClient(new DiagramClient(){});
+        _clientDiagramModel = mainModel.registerClient(new DiagramClient() {
+        });
         _graph = new ORM2Editor_mxGraph(_graphPresenter);
         _graphComponent = new mxGraphComponent(_graph);
         _graphPresenter = new GraphPresenter(_graph, _clientDiagramModel, _graphComponent);
+
+
+        ORM_mxMultiplicity[] _mxMultiplicity = new ORM_mxMultiplicity[1];
+
+        _mxMultiplicity[0] = new ORM_mxMultiplicity(_graphPresenter);
+
+        _graph.setMultiplicities(_mxMultiplicity);
 
         _graph.setAllowDanglingEdges(false);
         _graph.setAllowLoops(false);
@@ -51,10 +65,54 @@ public class ORM2Editor extends JFrame implements DiagramClient{
         _graphComponent.setConnectable(false);
         _graphComponent.setEnterStopsCellEditing(true);
 
+        mxStylesheet _styleSheet = _graph.getStylesheet();
+        Map<String, Object> _defaultEdgeStyle = _styleSheet.getDefaultEdgeStyle();
+        Map<String, Object> _defaultVertexStyle = _styleSheet.getDefaultVertexStyle();
+        _defaultEdgeStyle.put("editable", "0");
+        _defaultEdgeStyle.put("endArrow", " ");
+        _defaultEdgeStyle.put("strokeColor", "black");
+        _defaultVertexStyle.put("fontSize", 12); //ORM2 default size is 7, in here it is so small
+        _defaultVertexStyle.put("fontFamily", "Times New Roman");
+        _defaultVertexStyle.put("fillColor", "white");
+        _defaultVertexStyle.put("strokeColor", "black");
+        _defaultVertexStyle.put("spacing", 10);
+        _defaultVertexStyle.put("spacingTop", 3);
+        _defaultVertexStyle.put("autosize", 1);
+
         getContentPane().add(_graphComponent);
 
         _tb = createToolbar();
         add(_tb, "West");
+
+
+        _graph.addListener(mxEvent.CELL_CONNECTED, new mxEventSource.mxIEventListener() {
+            @Override
+            public void invoke(Object source, mxEventObject evt) {
+                Map<String, Object> properties = evt.getProperties();
+                Object edge = properties.get("edge");
+                if (((mxCell) edge).getSource() != null
+                        && ((mxCell) edge).getTarget() != null) {
+
+                    ORM_EventObject ormEventObject = new ORM_EventObject(this);
+                    ormEventObject.set_mxCell((mxCell) edge);
+                    _graph.fireConnectEdge(ormEventObject);
+
+                    _graphComponent.setConnectable(false);
+                }
+            }
+        });
+
+        _graph.getSelectionModel().addListener(mxEvent.CHANGE, (sender, evt) -> {
+            mxGraphSelectionModel sm = (mxGraphSelectionModel) sender;
+            mxCell cell = (mxCell) sm.getCell();
+            if (cell != null) {
+                ORM_EventObject ormEventObject = new ORM_EventObject(this);
+                ormEventObject.set_mxCell(cell);
+                _graph.fireprocessOfCreatingConstrainAssociation(ormEventObject);
+
+                _graphComponent.setConnectable(false);
+            }
+        });
 
         _graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
             @Override
@@ -105,13 +163,15 @@ public class ORM2Editor extends JFrame implements DiagramClient{
                         ((JToggleButton) _tb.getComponent(SUBTYPING)).setSelected(false);
                         _activeAction = -1;
                         break;
-                    case SUBTYPING_CONSTRAIN:
-                        ((JToggleButton) _tb.getComponent(SUBTYPING_CONSTRAIN)).setSelected(false);
+                    case CONSTRAIN_ASSOCIATION:
+                        ((JToggleButton) _tb.getComponent(CONSTRAIN_ASSOCIATION)).setSelected(false);
                         _activeAction = -1;
                         break;
                     case DELETE:
                         mxCell deleteCell = (mxCell) _graph.getSelectionCell();
-                        //_graphPresenter.de
+                        if (deleteCell != null) {
+                            _graphPresenter.deleteElementPresenter(deleteCell);
+                        }
                         ((JToggleButton) _tb.getComponent(DELETE)).setSelected(false);
                         _activeAction = -1;
                         break;
@@ -153,12 +213,12 @@ public class ORM2Editor extends JFrame implements DiagramClient{
         constraintExclusion.setName(_toolbarItemName[4]);
         constraintExclusion.setText("Exclusion Constraint");
 
-        JToggleButton inclusiveOr = new JToggleButton(new ImageIcon("images/Inclusive‐orConstraint.jpg"));
+        JToggleButton inclusiveOr = new JToggleButton(new ImageIcon("images/Inclusive_orConstraint.jpg"));
         inclusiveOr.addItemListener(new toolbarController());
         inclusiveOr.setName(_toolbarItemName[5]);
         inclusiveOr.setText("Inclusive Or Constraint");
 
-        JToggleButton exclusiveOr = new JToggleButton(new ImageIcon("images/Exclusive‐orConstraint.jpg"));
+        JToggleButton exclusiveOr = new JToggleButton(new ImageIcon("images/Exclusive_orConstraint.jpg"));
         exclusiveOr.addItemListener(new toolbarController());
         exclusiveOr.setName(_toolbarItemName[6]);
         exclusiveOr.setText("Exclusive Or Constraint");
@@ -235,8 +295,22 @@ public class ORM2Editor extends JFrame implements DiagramClient{
                         if (source.getName().equals(_toolbarItemName[i])) {
 
                             _activeAction = i;
+                            _graphPresenter.endCreatingEdgeBy_mxGraph();
                         }
                     }
+
+                    if (_activeAction == ROLE_ASSOC) {
+
+                        _graphPresenter.startCreatingEdgeBy_mxGraph(1);  // Role Association 1
+
+                    } else if (_activeAction == SUBTYPING) {
+
+                        _graphPresenter.startCreatingEdgeBy_mxGraph(2);  // Subtyping 2
+                    } else if (_activeAction == CONSTRAIN_ASSOCIATION) {
+
+                        _graphPresenter.startCreatingEdgeBy_mxGraph(3);  // Constraint Association 2
+                    }
+
                     deactivateAllButtonsExcept(_activeAction);
                 }
             }
@@ -250,34 +324,16 @@ public class ORM2Editor extends JFrame implements DiagramClient{
             if (_tb.getComponent(i) instanceof JToggleButton) {
                 if (i != index) {
                     ((JToggleButton) _tb.getComponent(i)).setSelected(false);
+
+                    if ((i == SUBTYPING && _activeAction != ROLE_ASSOC)
+                            || (i == ROLE_ASSOC && _activeAction != SUBTYPING)) {
+                        _graphComponent.setConnectable(false);
+                    }
                 }
             }
         }
     }
 
-    private final Set<EventRecorderListener> _listeners = new HashSet<>();
-
-    public void addListener(EventRecorderListener l) {
-        _listeners.add(l);
-    }
-
-    public void removeListener(EventRecorderListener l) {
-        _listeners.remove(l);
-    }
-
-    private void fireEdit(Event1 e) {
-
-        for (EventRecorderListener listener : _listeners) {
-            listener.edit(e);
-        }
-    }
-
-    private void fireDelete(Event1 e) {
-
-        for (EventRecorderListener listener : _listeners) {
-            listener.delete(e);
-        }
-    }
 
     public static void main(String[] args) {
 

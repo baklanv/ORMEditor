@@ -1,6 +1,8 @@
 package ORM_Presenter;
 
 import ORM2Editor.ORM2Editor_mxGraph;
+import ORM_Event.ORM_EventListener;
+import ORM_Event.ORM_EventObject;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import org.jetbrains.annotations.NotNull;
@@ -9,22 +11,27 @@ import org.vstu.nodelinkdiagram.DiagramElement;
 import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_EntityType;
 import org.vstu.orm2diagram.model.ORM_ValueType;
+import org.w3c.dom.Element;
 
+import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 public class GraphPresenter {
     ORM2Editor_mxGraph _graph;
     ClientDiagramModel _clientDiagramModel;
     mxGraphComponent _graphComponent;
-    public GraphPresenter(@NotNull ORM2Editor_mxGraph graph, @NotNull ClientDiagramModel clientDiagramModel, @NotNull mxGraphComponent graphComponent){
+    int _edgeType = -1;
+
+    public GraphPresenter(@NotNull ORM2Editor_mxGraph graph, @NotNull ClientDiagramModel clientDiagramModel, @NotNull mxGraphComponent graphComponent) {
         _graph = graph;
         _graph.setGraphPresenter(this);
 
         _clientDiagramModel = clientDiagramModel;
         _graphComponent = graphComponent;
+
+        _graph.addGraphListener(new edgeConnectedListener());
     }
 
     public ORM2Editor_mxGraph getMxGraph() {
@@ -43,9 +50,9 @@ public class GraphPresenter {
         mxCellPresenterMap.remove(presenter.get_mxCell(), presenter);
     }
 
-    private ElementPresenter getElementPresenter(DiagramElement element){
+    private ElementPresenter getElementPresenter(DiagramElement element) {
         Collection<ElementPresenter> elementPresenterList = mxCellPresenterMap.values();
-        for (ElementPresenter e : elementPresenterList){
+        for (ElementPresenter e : elementPresenterList) {
             if (e.getORM_Element() == element)
                 return e;
         }
@@ -64,6 +71,16 @@ public class GraphPresenter {
         return presenter != null ? presenter.getORM_Element() : null;
     }
 
+    public List<ElementPresenter> getCells(Class elementClass) {
+        List<ElementPresenter> elementPresenters = new ArrayList<>();
+        Collection<ElementPresenter> list = mxCellPresenterMap.values();
+        for (ElementPresenter element : list) {
+            if (element.getClass().equals(elementClass))
+                elementPresenters.add(element);
+        }
+        return elementPresenters;
+    }
+
     public EntityTypePresenter createEntityTypePresenter(Point pos) {
 
         ORM_EntityType orm_entityType = _clientDiagramModel.createNode(ORM_EntityType.class);
@@ -78,10 +95,10 @@ public class GraphPresenter {
 
     public ValueTypePresenter createValueTypePresenter(Point pos) {
 
-        ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
-        ValueTypePresenter valueTypePresenter = new ValueTypePresenter(this, pos, orm_valueType);
+        //ORM_ValueType orm_valueType = _clientDiagramModel.createNode(ORM_ValueType.class);
+        ValueTypePresenter valueTypePresenter = new ValueTypePresenter(this, pos);
 
-        _clientDiagramModel.commit();
+        //_clientDiagramModel.commit();
         //зарегитреруем призентор и его соответсвующего mxCell
         registerPresenter(valueTypePresenter);
 
@@ -148,13 +165,132 @@ public class GraphPresenter {
         return exclusiveOrConstraintPresenter;
     }
 
-    public SubtypingPresenter createSubtypingPresenter() {
+    public void deleteElementPresenter(mxCell cell) {
+        ElementPresenter elementPresenter = getPresenter(cell);
+        if (elementPresenter != null) {
+            elementPresenter.destroy();
+        }
+    }
 
-        SubtypingPresenter subtypePresenter = new SubtypingPresenter(this);
+    public void startCreatingEdgeBy_mxGraph(int edgeType) {
 
-        //зарегитреруем призентор и его соответсвующего mxCell
-        registerPresenter(subtypePresenter);
+        _edgeType = edgeType;
+        if (edgeType != 3)
+            _graphComponent.setConnectable(true);
 
-        return subtypePresenter;
+    }
+
+    public void endCreatingEdgeBy_mxGraph() {
+
+        _edgeType = -1;
+        _graphComponent.setConnectable(false);
+    }
+
+    public String canEdgeConnected(mxCell edge, mxCell source, mxCell target) {
+        String result = "";
+
+        String edgeType = "";
+
+        // проверять может ли эти source или target внутренные элементы BinaryRole
+
+        ElementPresenter sourceEle = getPresenter(source);
+
+        // System.out.println(((Element)target.getParent().getParent().getValue()).getAttribute("type"));;
+        ElementPresenter targetEle = getPresenter(target);
+
+        if (_edgeType == 1) {
+            result = RoleAssociationPresenter.canConnect(GraphPresenter.this, sourceEle, targetEle);
+
+
+        } else if (_edgeType == 2) {
+
+            result = SubtypingPresenter.canConnect(GraphPresenter.this, sourceEle, targetEle);
+
+        } else if (_edgeType == 3){
+
+            result = ConstrainAssociationPresenter.canConnect(GraphPresenter.this, sourceEle, targetEle);
+        }
+
+        return result;
+    }
+
+    public String canChangeName(mxCell cell, String newLabel) {
+        String result = "";
+        ElementPresenter element = getPresenter(cell);
+
+        if (element instanceof EntityTypePresenter) {
+
+            result = EntityTypePresenter.canChangeName(GraphPresenter.this, newLabel);
+
+        } else if (element instanceof ValueTypePresenter) {
+            result = ValueTypePresenter.canChangeName(GraphPresenter.this, newLabel);
+        }
+        return result;
+    }
+
+
+    // класс контролирует создание дуги (Role Association/Subtyping) с помощью GUI
+    private class edgeConnectedListener implements ORM_EventListener {
+
+        mxCell tmpCell;
+
+        @Override
+        public void edgeConnected(ORM_EventObject e) {
+
+            DiagramElement element = getORM_Element(e.get_mxCell());
+
+            // Ничего дополнительно не делаем, если дуга уже существует/существовала в диаграмме
+            if (element != null || _edgeType == 3) {
+                return;
+            }
+
+            if (_edgeType == 1) {
+                createRoleAssociationPresenter(e.get_mxCell());
+            }
+            else if (_edgeType == 2) {
+                createSubtypingPresenter(e.get_mxCell());
+            }
+        }
+
+        @Override
+        public void processOfCreatingConstrainAssociation(ORM_EventObject e) {
+            if (_edgeType == 3) {
+                if (tmpCell == null) {
+                    tmpCell = e.get_mxCell();
+                }
+                    else {
+                    createConstrainAssociation(tmpCell, e.get_mxCell());
+                    tmpCell = null;
+                }
+            }
+            else{
+                tmpCell = null;
+            }
+        }
+
+        private void createSubtypingPresenter(mxCell cell) {
+
+            SubtypingPresenter subtypePresenter = new SubtypingPresenter(GraphPresenter.this, cell);
+
+            registerPresenter(subtypePresenter);
+            endCreatingEdgeBy_mxGraph();
+        }
+
+        private void createRoleAssociationPresenter(mxCell cell) {
+            RoleAssociationPresenter roleAssociationPresenter = new RoleAssociationPresenter(GraphPresenter.this, cell);
+            registerPresenter(roleAssociationPresenter);
+            endCreatingEdgeBy_mxGraph();
+        }
+
+        private void createConstrainAssociation(mxCell source, mxCell target) {
+            ConstrainAssociationPresenter constrainAssociationPresenter = new ConstrainAssociationPresenter(GraphPresenter.this, source, target);
+            String result = canEdgeConnected(constrainAssociationPresenter.get_mxCell(), tmpCell, target);
+            registerPresenter(constrainAssociationPresenter);
+            if (!result.equals("")){
+                deleteElementPresenter(constrainAssociationPresenter.get_mxCell());
+                JOptionPane.showMessageDialog(null, result);
+            }
+            endCreatingEdgeBy_mxGraph();
+        }
     }
 }

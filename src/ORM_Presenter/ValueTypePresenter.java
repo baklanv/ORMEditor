@@ -7,17 +7,20 @@ import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_EntityType;
 import org.vstu.orm2diagram.model.ORM_ValueType;
 
+import java.util.List;
+
 public class ValueTypePresenter extends ElementPresenter{
-    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_ValueType orm_valueType) {
+    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos
+    ) {
         super(graphPresenter);
 
         _mxCell = (mxCell) graphPresenter.getMxGraph()
                 .insertVertex(graphPresenter.getMxGraph().getDefaultParent(), null,
                         generateName(), pos.getX(), pos.getY(), 80, 30,
-                        "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false");
+                        "strokeWidth=1.5;autosize=true;rounded=true;align=center;dashed=true;resizable=false");
 
-        _diagramElement = orm_valueType;
-        ((ORM_ValueType)_diagramElement).setName(getName());
+        //_diagramElement = orm_valueType;
+        //((ORM_ValueType)_diagramElement).setName(getName());
         //((ORM_ValueType)_diagramElement).setPosition(getPosition());
     }
 
@@ -56,5 +59,21 @@ public class ValueTypePresenter extends ElementPresenter{
         mxGeometry cellGeo = _mxCell.getGeometry();
 
         return new java.awt.Point((int) cellGeo.getX(), (int) cellGeo.getY());
+    }
+
+    public static String canChangeName(GraphPresenter graphPresenter, String name){
+        String result = "";
+
+        List<ElementPresenter> elements = graphPresenter.getCells(ValueTypePresenter.class);
+
+        for (ElementPresenter ele : elements) {
+
+            String anotherName = ele._mxCell.getValue().toString();
+            if (anotherName.equals(name) ) {
+                return "Value Type with this name already exists";
+            }
+        }
+
+        return result;
     }
 }
