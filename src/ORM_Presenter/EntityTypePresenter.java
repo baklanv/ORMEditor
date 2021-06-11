@@ -8,7 +8,7 @@ import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_EntityType;
 
 public class EntityTypePresenter extends ElementPresenter {
-    String _style = "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false;perimeter=ellipsePerimeter";
+    String _style = "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false;";
 
     public EntityTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_EntityType orm_entityType) {
         super(graphPresenter);
