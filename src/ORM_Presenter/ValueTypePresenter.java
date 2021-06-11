@@ -3,25 +3,27 @@ package ORM_Presenter;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.nodelinkdiagram.statuses.ValidateStatus;
 import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_EntityType;
 import org.vstu.orm2diagram.model.ORM_ValueType;
 
-import java.util.List;
-
 public class ValueTypePresenter extends ElementPresenter{
-    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos
-    ) {
+    String _style = "strokeWidth=1.5;autosize=true;rounded=true;align=center;dashed=true;resizable=false;";
+    public ValueTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_ValueType orm_valueType) {
         super(graphPresenter);
 
         _mxCell = (mxCell) graphPresenter.getMxGraph()
                 .insertVertex(graphPresenter.getMxGraph().getDefaultParent(), null,
-                        generateName(), pos.getX(), pos.getY(), 80, 30,
-                        "strokeWidth=1.5;autosize=true;rounded=true;align=center;dashed=true;resizable=false");
+                        generateName(), pos.getX(), pos.getY(), 80, 30, _style);
 
-        //_diagramElement = orm_valueType;
-        //((ORM_ValueType)_diagramElement).setName(getName());
-        //((ORM_ValueType)_diagramElement).setPosition(getPosition());
+        //обновлять размер
+        getGraphPresenter().getMxGraph().cellSizeUpdated(get_mxCell(), false);
+
+        _diagramElement = orm_valueType;
+        ((ORM_ValueType)_diagramElement).setName(getName());
+        ((ORM_ValueType)_diagramElement).setPosition(getPosition());
+        _validateStatus = ValidateStatus.Acceptable;
     }
 
     // ------------ Генерация типового представления для Value Type -------------
@@ -38,6 +40,7 @@ public class ValueTypePresenter extends ElementPresenter{
             name = generateName();
         }
         _mxCell.setValue(name);
+        ((ORM_ValueType) _diagramElement).setName(name);
     }
 
     public String getName() {
@@ -54,26 +57,20 @@ public class ValueTypePresenter extends ElementPresenter{
         _mxCell.setGeometry(oldGeo);
     }
 
-    public java.awt.Point getPosition() {
+    public Point getPosition() {
         //получить текущую геометрию
         mxGeometry cellGeo = _mxCell.getGeometry();
 
-        return new java.awt.Point((int) cellGeo.getX(), (int) cellGeo.getY());
+        return new Point((int) cellGeo.getX(), (int) cellGeo.getY());
     }
 
-    public static String canChangeName(GraphPresenter graphPresenter, String name){
-        String result = "";
+    public void fail() {
+        _graphPresenter.getMxGraph().setCellStyle(_style + "strokeColor=red", new Object[]{_mxCell});
+        _validateStatus = ValidateStatus.Invalid;
+    }
 
-        List<ElementPresenter> elements = graphPresenter.getCells(ValueTypePresenter.class);
-
-        for (ElementPresenter ele : elements) {
-
-            String anotherName = ele._mxCell.getValue().toString();
-            if (anotherName.equals(name) ) {
-                return "Value Type with this name already exists";
-            }
-        }
-
-        return result;
+    public void success(){
+        _graphPresenter.getMxGraph().setCellStyle(_style, new Object[]{_mxCell});
+        _validateStatus = ValidateStatus.Acceptable;
     }
 }
