@@ -15,10 +15,9 @@ import org.vstu.orm2diagram.model.*;
 
 import javax.swing.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
-public class GraphPresenter {
+public class GraphPresenter{
     ORM2Editor_mxGraph _graph;
     ClientDiagramModel _clientDiagramModel;
     mxGraphComponent _graphComponent;
@@ -169,32 +168,25 @@ public class GraphPresenter {
 
     public String canEdgeConnected(mxCell edge, mxCell source, mxCell target) {
         String edgeType = "";
-
+        boolean result = false;
         ElementPresenter sourceEle = getPresenter(source);
         ElementPresenter targetEle = getPresenter(target);
 
         DiagramElement edgeElement = getORM_Element(edge);
         if (_edgeType == 1 || edgeElement instanceof ORM_RoleAssociation) {
-            boolean result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_RoleAssociation.class, ValidationLevel.Strong);
-
+            result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_RoleAssociation.class, ValidationLevel.Strong);
             if (sourceEle.getORM_Element() instanceof ORM_Role) {
                 result = _clientDiagramModel.canConnectBy(targetEle.getORM_Element(), sourceEle.getORM_Element(), ORM_RoleAssociation.class, ValidationLevel.Strong);
             }
-            if (!result) {
-                edgeType = "Error";
-            }
         } else if (_edgeType == 2 || edgeElement instanceof ORM_Subtyping) {
-            boolean result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_Subtyping.class, ValidationLevel.Strong);
-            if (!result) {
-                edgeType = "Error";
-            }
+            result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_Subtyping.class, ValidationLevel.Strong);
         } else if (edgeElement instanceof ORM_ConstraintAssociation) {
-            boolean result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_ConstraintAssociation.class, ValidationLevel.Strong);
-            if (!result) {
-                edgeType = "Error";
-            }
+            result = _clientDiagramModel.canConnectBy(sourceEle.getORM_Element(), targetEle.getORM_Element(), ORM_ConstraintAssociation.class, ValidationLevel.Strong);
         }
-
+        if (!result) {
+            edgeType = "It is not possible to connect nodes " + sourceEle.get_mxCell().getValue() +
+                    " and " + targetEle.get_mxCell().getValue();
+        }
         return edgeType;
     }
 
