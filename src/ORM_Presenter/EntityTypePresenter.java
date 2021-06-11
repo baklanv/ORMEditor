@@ -8,19 +8,23 @@ import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_EntityType;
 
 public class EntityTypePresenter extends ElementPresenter {
-    String _style = "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false;";
+    String _style = "spacing=10;verticalLabelPosition=middle;autosize=true;rounded=true;resizable=false;perimeter=ellipsePerimeter";
 
     public EntityTypePresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_EntityType orm_entityType) {
         super(graphPresenter);
 
+
         _mxCell = (mxCell) graphPresenter.getMxGraph()
                 .insertVertex(graphPresenter.getMxGraph().getDefaultParent(), null,
-                        "0", pos.getX(), pos.getY(), 80, 30,
-                        _style);
+                        generateName(), pos.getX(), pos.getY(), 80, 30, _style);
+
+        //обновлять размер
+        getGraphPresenter().getMxGraph().cellSizeUpdated(get_mxCell(), false);
 
         _diagramElement = orm_entityType;
         ((ORM_EntityType) _diagramElement).setName(getName());
         ((ORM_EntityType) _diagramElement).setPosition(getPosition());
+        _validateStatus = ValidateStatus.Acceptable;
     }
 
     // ------------ Генерация типового представления для Entity Type -------------
@@ -37,6 +41,7 @@ public class EntityTypePresenter extends ElementPresenter {
             name = generateName();
         }
         _mxCell.setValue(name);
+        ((ORM_EntityType) _diagramElement).setName(name);
     }
 
     public String getName() {
@@ -58,5 +63,15 @@ public class EntityTypePresenter extends ElementPresenter {
         mxGeometry cellGeo = _mxCell.getGeometry();
 
         return new Point((int) cellGeo.getX(), (int) cellGeo.getY());
+    }
+
+    public void fail() {
+        _graphPresenter.getMxGraph().setCellStyle(_style + "strokeColor=red", new Object[]{_mxCell});
+        _validateStatus = ValidateStatus.Invalid;
+    }
+
+    public void success(){
+        _graphPresenter.getMxGraph().setCellStyle(_style, new Object[]{_mxCell});
+        _validateStatus = ValidateStatus.Acceptable;
     }
 }
