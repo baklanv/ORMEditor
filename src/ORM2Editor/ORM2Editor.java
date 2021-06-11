@@ -5,9 +5,7 @@ import ORM_Presenter.GraphPresenter;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.util.mxSwingConstants;
-import com.mxgraph.util.mxEvent;
-import com.mxgraph.util.mxEventObject;
-import com.mxgraph.util.mxEventSource;
+import com.mxgraph.util.*;
 import com.mxgraph.view.mxGraphSelectionModel;
 import com.mxgraph.view.mxStylesheet;
 import org.vstu.nodelinkdiagram.*;
@@ -376,18 +374,10 @@ public class ORM2Editor extends JFrame implements DiagramClient {
             JToggleButton source = (JToggleButton) itemEvent.getSource();
             switch (source.getText()) {
                 case "Панель инструментов" -> {
-                    if (source.isSelected()) {
-                        _tb.setVisible(true);
-                    } else {
-                        _tb.setVisible(false);
-                    }
+                    _tb.setVisible(source.isSelected());
                 }
                 case "Панель ошибок" -> {
-                    if (source.isSelected()) {
-                        _scrollBar.setVisible(true);
-                    } else {
-                        _scrollBar.setVisible(false);
-                    }
+                    _scrollBar.setVisible(source.isSelected());
                 }
             }
             revalidate();
