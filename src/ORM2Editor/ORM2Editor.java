@@ -290,32 +290,23 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
         @Override
         public void itemStateChanged(ItemEvent e) {
-
             if (e.getSource() instanceof JToggleButton) {
                 JToggleButton source = (JToggleButton) e.getSource();
                 if (e.getStateChange() == 1) {
-
                     for (int i = 0; i < _toolbarItemName.length; i++) {
-
                         if (source.getName().equals(_toolbarItemName[i])) {
-
                             _activeAction = i;
                             _graphPresenter.endCreatingEdgeBy_mxGraph();
                         }
                     }
-
                     if (_activeAction == ROLE_ASSOC) {
-
                         _graphPresenter.startCreatingEdgeBy_mxGraph(1);  // Role Association 1
 
                     } else if (_activeAction == SUBTYPING) {
-
                         _graphPresenter.startCreatingEdgeBy_mxGraph(2);  // Subtyping 2
                     } else if (_activeAction == CONSTRAIN_ASSOCIATION) {
-
                         _graphPresenter.startCreatingEdgeBy_mxGraph(3);  // Constraint Association 2
                     }
-
                     deactivateAllButtonsExcept(_activeAction);
                 }
             }
@@ -323,13 +314,10 @@ public class ORM2Editor extends JFrame implements DiagramClient {
     }
 
     private void deactivateAllButtonsExcept(int index) {
-
         for (int i = 0; i < _tb.getComponentCount(); i++) {
-
             if (_tb.getComponent(i) instanceof JToggleButton) {
                 if (i != index) {
                     ((JToggleButton) _tb.getComponent(i)).setSelected(false);
-
                     if ((i == SUBTYPING && _activeAction != ROLE_ASSOC)
                             || (i == ROLE_ASSOC && _activeAction != SUBTYPING)) {
                         _graphComponent.setConnectable(false);
