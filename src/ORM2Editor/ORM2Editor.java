@@ -17,10 +17,7 @@ import org.vstu.orm2diagram.model.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,11 +33,14 @@ public class ORM2Editor extends JFrame implements DiagramClient {
     int _activeAction = -1;
     JToolBar _tb;
 
+    JScrollPane _scrollBar;
+    JToolBar _tbSb;
+
     private final int ENTITY_TYPE = 0, VALUE_TYPE = 1, UNARY_FACT = 2,
             BINARY_FACT = 3, EXCLUSION_CONSTRAINT = 4, INCLUSIVE_OR_CONSTRAINT = 5, EXCLUSIVE_OR_CONSTRAINT = 6,
             ROLE_ASSOC = 7, SUBTYPING = 8, CONSTRAIN_ASSOCIATION = 9, DELETE = 10;
 
-    String[] _toolbarItemName = {"EntityType", "ValueType", "UnaryFactType", "BinaryFactType", "ExclusionConstraint", "Inclusive Or Oonstraint",
+    private final String[] _toolbarItemName = {"EntityType", "ValueType", "UnaryFactType", "BinaryFactType", "ExclusionConstraint", "Inclusive Or Oonstraint",
             "ExclusiveOrConstraint", "RoleConnector", "SubtypeConnector", "ConstrainAssociation", "Delete"};
 
     public ORM2Editor() {
@@ -48,24 +48,20 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
 
         MainDiagramModel mainModel = new MainDiagramModel(new ORM_DiagramFactory());
-        _clientDiagramModel = mainModel.registerClient(new DiagramClient() {
-        });
+        _clientDiagramModel = mainModel.registerClient(new DiagramClient(){});
         _graph = new ORM2Editor_mxGraph(_graphPresenter);
         _graphComponent = new mxGraphComponent(_graph);
         _graphPresenter = new GraphPresenter(_graph, _clientDiagramModel, _graphComponent);
         _clientDiagramModel.addListener(new ModelUpdateListener());
 
-
         mxSwingConstants.VERTEX_SELECTION_STROKE = new BasicStroke(1.0F, 0, 0, 10.0F, new float[]{7.0F, 7.0F}, 0.0F);
         mxSwingConstants.EDGE_SELECTION_STROKE = new BasicStroke(1.0F, 0, 0, 10.0F, new float[]{7.0F, 7.0F}, 0.0F);
 
-
         ORM_mxMultiplicity[] _mxMultiplicity = new ORM_mxMultiplicity[1];
         _mxMultiplicity[0] = new ORM_mxMultiplicity(_graphPresenter);
-
         _graph.setMultiplicities(_mxMultiplicity);
 
-        _graph.setAllowDanglingEdges(false); // запещаем висячие
+        _graph.setAllowDanglingEdges(false); // запрещаем висячие дуги
         _graph.setAllowLoops(false);
 
         _graphComponent.setConnectable(false);
@@ -84,10 +80,6 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         _defaultVertexStyle.put("spacingTop", 3);
 
         getContentPane().add(_graphComponent);
-
-        _tb = createToolbar();
-        add(_tb, "West");
-
 
         _graph.addListener(mxEvent.CELL_CONNECTED, new mxEventSource.mxIEventListener() {
             @Override
@@ -155,7 +147,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     }
                     case EXCLUSIVE_OR_CONSTRAINT -> {
                         _graphPresenter.createExclusiveOrConstraintPresenter(new Point(e.getX(), e.getY()));
-                        ((JToggleButton) _tb.getComponent(INCLUSIVE_OR_CONSTRAINT)).setSelected(false);
+                        ((JToggleButton) _tb.getComponent(EXCLUSIVE_OR_CONSTRAINT)).setSelected(false);
                         _activeAction = -1;
                     }
                     case ROLE_ASSOC -> {
@@ -184,9 +176,68 @@ public class ORM2Editor extends JFrame implements DiagramClient {
             }
         });
 
+
+        // Создание строки главного меню
+        JMenuBar menuBar = createMenuBar();
+        // Подключаем меню к интерфейсу приложения
+        setJMenuBar(menuBar);
+        // панель инструментов
+        _tb = createToolbar();
+        add(_tb, "West");
+        _tb.setVisible(false);
+        // панель ошибок
+        _scrollBar = createScroll();
+        add(_scrollBar, "South");
+        _scrollBar.setVisible(false);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 700);
         setVisible(true);
+    }
+
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        // Добавление в главное меню выпадающих пунктов меню
+        JToggleButton button1 = new JToggleButton("Панель инструментов");
+
+        JToggleButton button2 = new JToggleButton("Панель ошибок");
+        menuBar.add(button1);
+        menuBar.add(button2);
+
+        button1.addItemListener(new MenuBarController());
+        button2.addItemListener(new MenuBarController());
+
+        button1.setSelected(true);
+
+        return menuBar;
+    }
+
+    public void addMessage(String message) {
+        JLabel mess = new JLabel(message);
+        _tbSb.add(mess);
+
+        _scrollBar.revalidate();
+        _scrollBar.repaint();
+
+    }
+
+    private JScrollPane createScroll(){
+        _tbSb = createToolbarForError();
+        JScrollPane jScrollPane = _scrollBar = new JScrollPane(_tbSb);
+
+        _scrollBar.setPreferredSize(new Dimension(100, 115));
+        _scrollBar.setMaximumSize(new Dimension(100, 155));
+        return jScrollPane;
+    }
+    private JToolBar createToolbarForError() {
+        JToolBar toolbar = new JToolBar();
+        toolbar.setName("Список ошибок");
+        toolbar.setBackground(Color.white);
+        toolbar.setOrientation(1);
+        toolbar.setFloatable(false);
+
+        return toolbar;
     }
 
     private JToolBar createToolbar() {
@@ -260,7 +311,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         zoomActual.setText("Zoom Actual");
         zoomActual.addActionListener(e -> _graphComponent.zoomActual());
 
-        toolbar.add(entityType, BorderLayout.EAST);
+        toolbar.add(entityType);
         toolbar.add(valueType);
         toolbar.add(unaryFact);
         toolbar.add(binaryFact);
@@ -310,6 +361,31 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     deactivateAllButtonsExcept(_activeAction);
                 }
             }
+        }
+    }
+
+    private class MenuBarController implements ItemListener {
+        @Override
+        public void itemStateChanged(ItemEvent itemEvent) {
+            JToggleButton source = (JToggleButton) itemEvent.getSource();
+            switch (source.getText()) {
+                case "Панель инструментов" -> {
+                    if (source.isSelected()) {
+                        _tb.setVisible(true);
+                    } else {
+                        _tb.setVisible(false);
+                    }
+                }
+                case "Панель ошибок" -> {
+                    if (source.isSelected()) {
+                        _scrollBar.setVisible(true);
+                    } else {
+                        _scrollBar.setVisible(false);
+                    }
+                }
+            }
+            revalidate();
+            repaint();
         }
     }
 
