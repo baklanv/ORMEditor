@@ -18,6 +18,7 @@ import org.vstu.orm2diagram.model.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +49,8 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
 
         MainDiagramModel mainModel = new MainDiagramModel(new ORM_DiagramFactory());
-        _clientDiagramModel = mainModel.registerClient(new DiagramClient(){});
+        _clientDiagramModel = mainModel.registerClient(new DiagramClient() {
+        });
         _graph = new ORM2Editor_mxGraph(_graphPresenter);
         _graphComponent = new mxGraphComponent(_graph);
         _graphPresenter = new GraphPresenter(_graph, _clientDiagramModel, _graphComponent);
@@ -176,11 +178,6 @@ public class ORM2Editor extends JFrame implements DiagramClient {
             }
         });
 
-
-        // Создание строки главного меню
-        JMenuBar menuBar = createMenuBar();
-        // Подключаем меню к интерфейсу приложения
-        setJMenuBar(menuBar);
         // панель инструментов
         _tb = createToolbar();
         add(_tb, "West");
@@ -189,6 +186,10 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         _scrollBar = createScroll();
         add(_scrollBar, "South");
         _scrollBar.setVisible(false);
+        // Создание строки главного меню
+        JMenuBar menuBar = createMenuBar();
+        // Подключаем меню к интерфейсу приложения
+        setJMenuBar(menuBar);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 700);
@@ -200,8 +201,9 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
         // Добавление в главное меню выпадающих пунктов меню
         JToggleButton button1 = new JToggleButton("Панель инструментов");
-
+        button1.setBackground(Color.white);
         JToggleButton button2 = new JToggleButton("Панель ошибок");
+        button2.setBackground(Color.white);
         menuBar.add(button1);
         menuBar.add(button2);
 
@@ -209,12 +211,15 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         button2.addItemListener(new MenuBarController());
 
         button1.setSelected(true);
+        button2.setSelected(true);
 
         return menuBar;
     }
 
     public void addMessage(String message) {
         JLabel mess = new JLabel(message);
+        mess.setFont(new Font("Times New Roman", Font.PLAIN, 16));
+        mess.setForeground(Color.BLACK);
         _tbSb.add(mess);
 
         _scrollBar.revalidate();
@@ -222,7 +227,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
     }
 
-    private JScrollPane createScroll(){
+    private JScrollPane createScroll() {
         _tbSb = createToolbarForError();
         JScrollPane jScrollPane = _scrollBar = new JScrollPane(_tbSb);
 
@@ -230,6 +235,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         _scrollBar.setMaximumSize(new Dimension(100, 155));
         return jScrollPane;
     }
+
     private JToolBar createToolbarForError() {
         JToolBar toolbar = new JToolBar();
         toolbar.setName("Список ошибок");
@@ -404,8 +410,15 @@ public class ORM2Editor extends JFrame implements DiagramClient {
     }
 
     private class ModelUpdateListener implements ClientDiagramModelListener {
+        private List<String> _listOfDefects;
+
         @Override
         public void isUpdated(ModelUpdateEvent modelUpdateEvent) {
+            _tbSb.removeAll();
+            revalidate();
+            repaint();
+            _listOfDefects = new ArrayList<>();
+
             updateEntityTypePresenter();
             updateValueTypePresenter();
             updateUnaryPredicatePresenter();
@@ -413,6 +426,11 @@ public class ORM2Editor extends JFrame implements DiagramClient {
             updateInclusiveOrConstraintPresenter();
             updateExclusionConstraintPresenter();
             updateExclusiveOrConstraintPresenter();
+
+            _listOfDefects = _listOfDefects.stream().distinct().collect(Collectors.toList());
+            for (int i = 0; i < _listOfDefects.size(); i++) {
+                addMessage((i + 1) + ". " + _listOfDefects.get(i));
+            }
         }
 
         private void updateExclusionConstraintPresenter() {
@@ -421,6 +439,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Intermediate).collect(Collectors.toList());
             for (ORM_ExclusionConstraint element : ormExclusionConstraints) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_ExclusionConstraint> exclusionConstraintList = _clientDiagramModel.getElements(ORM_ExclusionConstraint.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -436,6 +455,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Intermediate).collect(Collectors.toList());
             for (ORM_ExclusionOrConstraint element : ormExclusionOrConstraints) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_ExclusionOrConstraint> exclusionOrConstraintList = _clientDiagramModel.getElements(ORM_ExclusionOrConstraint.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -451,6 +471,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Invalid).collect(Collectors.toList());
             for (ORM_BinaryPredicate element : binaryPredicates) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_BinaryPredicate> binaryPredicateList = _clientDiagramModel.getElements(ORM_BinaryPredicate.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -466,6 +487,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Intermediate).collect(Collectors.toList());
             for (ORM_InclusiveOrConstraint element : ormInclusiveOrConstraints) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_InclusiveOrConstraint> inclusiveOrConstraintList = _clientDiagramModel.getElements(ORM_InclusiveOrConstraint.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -481,6 +503,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Invalid).collect(Collectors.toList());
             for (ORM_UnaryPredicate element : unaryPredicates) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_UnaryPredicate> unaryPredicateList = _clientDiagramModel.getElements(ORM_UnaryPredicate.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -496,6 +519,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Invalid).collect(Collectors.toList());
             for (ORM_ValueType element : valueTypes) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_ValueType> diagramElements2 = _clientDiagramModel.getElements(ORM_ValueType.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
@@ -511,6 +535,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
                     filter(s -> s.getValidateStatus() == ValidateStatus.Invalid).collect(Collectors.toList());
             for (ORM_EntityType element : entityTypes) {
                 _graphPresenter.changeState(element, ValidateStatus.Invalid);
+                _listOfDefects.addAll(element.getDefects());
             }
             List<ORM_EntityType> diagramElements1 = _clientDiagramModel.getElements(ORM_EntityType.class).
                     filter(e -> _graphPresenter.getElementPresenter(e).getValidateStatus() == ValidateStatus.Invalid
