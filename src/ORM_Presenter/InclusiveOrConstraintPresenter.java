@@ -7,7 +7,7 @@ import org.vstu.nodelinkdiagram.util.Point;
 import org.vstu.orm2diagram.model.ORM_InclusiveOrConstraint;
 
 public class InclusiveOrConstraintPresenter extends ElementPresenter {
-    String _style = "shape=ellipse;perimeter=ellipsePerimeter;spacing=10;strokeColor=purple;foldable=false;editable=0;resizable=false;";
+    String _style = "shape=ellipse;perimeter=ellipsePerimeter;spacing=10;strokeColor=purple;foldable=false;editable=0;resizable=false;strokeWidth=2;";
 
     public InclusiveOrConstraintPresenter(@NotNull GraphPresenter graphPresenter, @NotNull Point pos, @NotNull ORM_InclusiveOrConstraint orm_inclusiveOrConstraint) {
         super(graphPresenter);
@@ -17,7 +17,7 @@ public class InclusiveOrConstraintPresenter extends ElementPresenter {
 
         mxCell _mxCell1 = (mxCell) graphPresenter.getMxGraph().insertVertex(_mxCell, null, "", 10, 10, 10, 10,
                 "shape=ellipse;perimeter=ellipsePerimeter;spacing=10;resizable=false;strokeColor=purple;fillColor=purple;" +
-                        "editable=0;movable=false;connectable=false;");
+                        "editable=0;movable=false;connectable=false;strokeWidth=2;");
         _mxCell1.setConnectable(false);
 
         _diagramElement = orm_inclusiveOrConstraint;

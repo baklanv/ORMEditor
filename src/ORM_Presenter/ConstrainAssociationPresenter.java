@@ -10,7 +10,7 @@ public class ConstrainAssociationPresenter extends ElementPresenter {
 
         _mxCell = (mxCell) graphPresenter.getMxGraph().insertEdge(graphPresenter.getMxGraph().getDefaultParent(),
                 null, "", m1, m2,
-                "strokeWidth=2;dashed=1;strokeColor=purple;");
+                "strokeWidth=2;dashed=1;strokeColor=purple;strokeWidth=2;");
 
         _diagramElement = constraintAssociation;
     }
