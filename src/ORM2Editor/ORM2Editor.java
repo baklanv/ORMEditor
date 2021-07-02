@@ -66,6 +66,8 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
         _graphComponent.setConnectable(false);
         _graphComponent.setEnterStopsCellEditing(true);
+        _graphComponent.setBackground(Color.WHITE);
+        setBackground(Color.WHITE);
 
         mxStylesheet _styleSheet = _graph.getStylesheet();
         Map<String, Object> _defaultEdgeStyle = _styleSheet.getDefaultEdgeStyle();
@@ -81,6 +83,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
 
         getContentPane().add(_graphComponent);
 
+        getContentPane().setBackground(Color.white);
         _graph.addListener(mxEvent.CELL_CONNECTED, new mxEventSource.mxIEventListener() {
             @Override
             public void invoke(Object source, mxEventObject evt) {
@@ -115,63 +118,63 @@ public class ORM2Editor extends JFrame implements DiagramClient {
             public void mouseReleased(MouseEvent e) {
                 _clientDiagramModel.beginUpdate();
                 switch (_activeAction) {
-                    case ENTITY_TYPE -> {
+                    case ENTITY_TYPE:
                         _graphPresenter.createEntityTypePresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(ENTITY_TYPE)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case VALUE_TYPE -> {
+                        break;
+                    case VALUE_TYPE:
                         _graphPresenter.createValueTypePresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(VALUE_TYPE)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case UNARY_FACT -> {
+                        break;
+                    case UNARY_FACT:
                         _graphPresenter.createUnaryPredicatePresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(UNARY_FACT)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case BINARY_FACT -> {
+                        break;
+                    case BINARY_FACT:
                         _graphPresenter.createBinaryPredicatePresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(BINARY_FACT)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case EXCLUSION_CONSTRAINT -> {
+                        break;
+                    case EXCLUSION_CONSTRAINT:
                         _graphPresenter.createExclusionConstraintPresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(EXCLUSION_CONSTRAINT)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case INCLUSIVE_OR_CONSTRAINT -> {
+                        break;
+                    case INCLUSIVE_OR_CONSTRAINT:
                         _graphPresenter.createInclusiveOrConstraintPresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(INCLUSIVE_OR_CONSTRAINT)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case EXCLUSIVE_OR_CONSTRAINT -> {
+                        break;
+                    case EXCLUSIVE_OR_CONSTRAINT:
                         _graphPresenter.createExclusiveOrConstraintPresenter(new Point(e.getX(), e.getY()));
                         ((JToggleButton) _tb.getComponent(EXCLUSIVE_OR_CONSTRAINT)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case ROLE_ASSOC -> {
+                        break;
+                    case ROLE_ASSOC:
                         ((JToggleButton) _tb.getComponent(ROLE_ASSOC)).setSelected(false);
                         _activeAction = -1;
                         _graphPresenter.endCreatingEdgeBy_mxGraph();
-                    }
-                    case SUBTYPING -> {
+                        break;
+                    case SUBTYPING:
                         ((JToggleButton) _tb.getComponent(SUBTYPING)).setSelected(false);
                         _activeAction = -1;
                         _graphPresenter.endCreatingEdgeBy_mxGraph();
-                    }
-                    case CONSTRAIN_ASSOCIATION -> {
+                        break;
+                    case CONSTRAIN_ASSOCIATION:
                         ((JToggleButton) _tb.getComponent(CONSTRAIN_ASSOCIATION)).setSelected(false);
                         _activeAction = -1;
-                    }
-                    case DELETE -> {
+                        break;
+                    case DELETE:
                         mxCell deleteCell = (mxCell) _graph.getSelectionCell();
                         if (deleteCell != null) {
                             _graphPresenter.deleteElementPresenter(deleteCell);
                         }
                         ((JToggleButton) _tb.getComponent(DELETE)).setSelected(false);
                         _activeAction = -1;
-                    }
+                        break;
                 }
             }
         });
@@ -188,6 +191,7 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         JMenuBar menuBar = createMenuBar();
         // Подключаем меню к интерфейсу приложения
         setJMenuBar(menuBar);
+
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 700);
@@ -247,71 +251,70 @@ public class ORM2Editor extends JFrame implements DiagramClient {
     private JToolBar createToolbar() {
 
         JToolBar toolbar = new JToolBar();
-
-        JToggleButton entityType = new JToggleButton(new ImageIcon("images/EntityType.jpg"));
+        JToggleButton entityType = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/EntityType.jpg")));
         entityType.setText("Entity Type");
         entityType.addItemListener(new toolbarController());
         entityType.setName(_toolbarItemName[0]);
 
-        JToggleButton valueType = new JToggleButton(new ImageIcon("images/ValueType.jpg"));
+        JToggleButton valueType = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/ValueType.jpg")));
         valueType.setText("Value Type");
         valueType.addItemListener(new toolbarController());
         valueType.setName(_toolbarItemName[1]);
 
-        JToggleButton unaryFact = new JToggleButton(new ImageIcon("images/UnarnyFactType.jpg"));
+        JToggleButton unaryFact = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/UnarnyFactType.jpg")));
         unaryFact.addItemListener(new toolbarController());
         unaryFact.setName(_toolbarItemName[2]);
         unaryFact.setText("Unary Role");
 
-        JToggleButton binaryFact = new JToggleButton(new ImageIcon("images/BinaryFactType.jpg"));
+        JToggleButton binaryFact = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/BinaryFactType.jpg")));
         binaryFact.addItemListener(new toolbarController());
         binaryFact.setName(_toolbarItemName[3]);
         binaryFact.setText("Binary Role");
 
-        JToggleButton constraintExclusion = new JToggleButton(new ImageIcon("images/ExclusionConstraint.jpg"));
+        JToggleButton constraintExclusion = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/ExclusionConstraint.jpg")));
         constraintExclusion.addItemListener(new toolbarController());
         constraintExclusion.setName(_toolbarItemName[4]);
         constraintExclusion.setText("Exclusion Constraint");
 
-        JToggleButton inclusiveOr = new JToggleButton(new ImageIcon("images/Inclusive_orConstraint.jpg"));
+        JToggleButton inclusiveOr = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/Inclusive_orConstraint.jpg")));
         inclusiveOr.addItemListener(new toolbarController());
         inclusiveOr.setName(_toolbarItemName[5]);
         inclusiveOr.setText("Inclusive Or Constraint");
 
-        JToggleButton exclusiveOr = new JToggleButton(new ImageIcon("images/Exclusive_orConstraint.jpg"));
+        JToggleButton exclusiveOr = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/Exclusive_orConstraint.jpg")));
         exclusiveOr.addItemListener(new toolbarController());
         exclusiveOr.setName(_toolbarItemName[6]);
         exclusiveOr.setText("Exclusive Or Constraint");
 
-        JToggleButton roleConnector = new JToggleButton(new ImageIcon("images/RoleConnector.jpg"));
+        JToggleButton roleConnector = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/RoleConnector.jpg")));
         roleConnector.addItemListener(new toolbarController());
         roleConnector.setName(_toolbarItemName[7]);
         roleConnector.setText("Role Association");
 
-        JToggleButton subtyping = new JToggleButton(new ImageIcon("images/SubtypeConnector.jpg"));
+        JToggleButton subtyping = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/SubtypeConnector.jpg")));
         subtyping.setText("Subtyping");
         subtyping.addItemListener(new toolbarController());
         subtyping.setName(_toolbarItemName[8]);
 
-        JToggleButton subtypingConstraint = new JToggleButton(new ImageIcon("images/ConstraintConnector.jpg"));
+        JToggleButton subtypingConstraint = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/ConstraintConnector.jpg")));
         subtypingConstraint.addItemListener(new toolbarController());
         subtypingConstraint.setName(_toolbarItemName[9]);
         subtypingConstraint.setText("Subtyping Constraint");
 
-        JToggleButton delete = new JToggleButton(new ImageIcon("images/Delete.jpg"));
+        JToggleButton delete = new JToggleButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/Delete.jpg")));
         delete.setText("Delete");
         delete.addItemListener(new toolbarController());
         delete.setName(_toolbarItemName[10]);
 
-        JButton zoomIn = new JButton(new ImageIcon("images/zoomIn.jpg"));
+        JButton zoomIn = new JButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/zoomIn.jpg")));
         zoomIn.setText("Zoom In");
         zoomIn.addActionListener(e -> _graphComponent.zoomIn());
 
-        JButton zoomOut = new JButton(new ImageIcon("images/zoomOut.jpg"));
+        JButton zoomOut = new JButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/zoomOut.jpg")));
         zoomOut.setText("Zoom Out");
         zoomOut.addActionListener(e -> _graphComponent.zoomOut());
 
-        JButton zoomActual = new JButton(new ImageIcon("images/zoomActual.jpg"));
+        JButton zoomActual = new JButton(new ImageIcon(ORM2Editor.class.getResource("/resource/images/zoomActual.jpg")));
         zoomActual.setText("Zoom Actual");
         zoomActual.addActionListener(e -> _graphComponent.zoomActual());
 
@@ -373,12 +376,12 @@ public class ORM2Editor extends JFrame implements DiagramClient {
         public void itemStateChanged(ItemEvent itemEvent) {
             JToggleButton source = (JToggleButton) itemEvent.getSource();
             switch (source.getText()) {
-                case "Панель инструментов" -> {
+                case "Панель инструментов":
                     _tb.setVisible(source.isSelected());
-                }
-                case "Панель ошибок" -> {
+                    break;
+                case "Панель ошибок":
                     _scrollBar.setVisible(source.isSelected());
-                }
+                    break;
             }
             revalidate();
             repaint();
