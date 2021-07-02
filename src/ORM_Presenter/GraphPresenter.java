@@ -5,7 +5,7 @@ import ORM_Event.ORM_EventListener;
 import ORM_Event.ORM_EventObject;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
-import org.jetbrains.annotations.NotNull;
+import com.sun.istack.internal.NotNull;
 import org.vstu.nodelinkdiagram.ClientDiagramModel;
 import org.vstu.nodelinkdiagram.DiagramElement;
 import org.vstu.nodelinkdiagram.statuses.ValidateStatus;

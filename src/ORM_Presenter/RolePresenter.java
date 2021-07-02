@@ -1,7 +1,7 @@
 package ORM_Presenter;
 
 import com.mxgraph.model.mxCell;
-import org.jetbrains.annotations.NotNull;
+import com.sun.istack.internal.NotNull;
 import org.vstu.nodelinkdiagram.statuses.ValidateStatus;
 import org.vstu.orm2diagram.model.ORM_Role;
 
